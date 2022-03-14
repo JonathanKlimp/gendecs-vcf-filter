@@ -1,9 +1,6 @@
 import java.io.*;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class VcfReader {
@@ -58,10 +55,12 @@ public class VcfReader {
 
             }
             ArrayList<String> foundMatches = getMatchesClinvar(stringsToFind);
+            filterMatches(foundMatches);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     private static ArrayList<String> getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
         File file = new File("data/clinvar_20220205.vcf");
         Scanner reader = new Scanner(file);
@@ -75,5 +74,27 @@ public class VcfReader {
             }
         }
         return foundMatches;
+    }
+
+    private static void filterMatches(ArrayList<String> matchedLines) {
+        ArrayList<String> matchedVariants = new ArrayList<>();
+        ArrayList<String> clinSig = new ArrayList<>(
+                List.of("likely_pathogenic",
+                        "pathogenic", "pathogenic/likely_pathogenic")
+        );
+        for(String variant: matchedLines) {
+            String[] splittedLine = variant.split("\t");
+            String[] infoString = splittedLine[7].split(";");
+
+            System.out.println(infoString[5]);
+            for(String i: infoString) {
+                if(i.contains("CLNSIG")) {
+                    if (clinSig.contains(i.split("=")[1])) {
+                        matchedVariants.add(variant);
+                    }
+                }
+            }
+        }
+        System.out.println(matchedVariants);
     }
 }
