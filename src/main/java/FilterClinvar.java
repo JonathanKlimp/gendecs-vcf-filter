@@ -10,13 +10,18 @@ public class FilterClinvar {
                 List.of("no_assertion_provided",
                         "no_assertion_criteria_provided")
         );
+        ArrayList<String> oneStar = new ArrayList<>(
+                List.of("criteria_provided,single_submitter",
+                        "criteria_provided,conflicting_interpretations")
+        );
 
         VcfReader vcfReader = new VcfReader(filenameTestData);
 
 //        if (vcfReader.removeStatus(filenameClinvar, zeroStar)) {
 //            System.out.println("Successfully removed the 0 star rating lines");
 //        }
-        vcfReader.matchWithClinvar();
+        ArrayList<String> matches = vcfReader.matchWithClinvar();
+        System.out.println(matches);
 
     }
 }

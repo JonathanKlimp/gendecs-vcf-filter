@@ -1,5 +1,4 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -34,7 +33,7 @@ public class VcfReader {
         return items.stream().anyMatch(inputString::contains);
     }
 
-    public void matchWithClinvar() {
+    public ArrayList<String> matchWithClinvar() {
         Map<String, Pattern> stringsToFind = new HashMap<>();
         try {
             Scanner reader = new Scanner(vcfFile);
@@ -55,10 +54,11 @@ public class VcfReader {
 
             }
             ArrayList<String> foundMatches = getMatchesClinvar(stringsToFind);
-            filterMatches(foundMatches);
+            return filterMatches(foundMatches);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     private static ArrayList<String> getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
@@ -76,7 +76,7 @@ public class VcfReader {
         return foundMatches;
     }
 
-    private static void filterMatches(ArrayList<String> matchedLines) {
+    private static ArrayList<String> filterMatches(ArrayList<String> matchedLines) {
         ArrayList<String> matchedVariants = new ArrayList<>();
         ArrayList<String> clinSig = new ArrayList<>(
                 List.of("likely_pathogenic",
@@ -86,15 +86,18 @@ public class VcfReader {
             String[] splittedLine = variant.split("\t");
             String[] infoString = splittedLine[7].split(";");
 
-            System.out.println(infoString[5]);
             for(String i: infoString) {
-                if(i.contains("CLNSIG")) {
-                    if (clinSig.contains(i.split("=")[1])) {
-                        matchedVariants.add(variant);
-                    }
-                }
+                addSigVariants(matchedVariants, clinSig, variant, i);
             }
         }
-        System.out.println(matchedVariants);
+        return matchedVariants;
+    }
+
+    private static void addSigVariants(ArrayList<String> matchedVariants, ArrayList<String> clinSig, String variant, String i) {
+        if(i.contains("CLNSIG")) {
+            if (clinSig.contains(i.split("=")[1].toLowerCase())) {
+                matchedVariants.add(variant);
+            }
+        }
     }
 }
