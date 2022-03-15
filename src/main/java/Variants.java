@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
 public class Variants {
-    ArrayList<String> variants;
-    ArrayList<String> genes;
+    private ArrayList<String> variants = new ArrayList<>();
+    private ArrayList<String> genes = new ArrayList<>();
 
     public ArrayList<String> getVariants() {
         return variants;

@@ -24,17 +24,28 @@ public class VcfParser {
             case ONESTAR -> {
                 return new ArrayList<>(
                         List.of("criteria_provided,_single_submitter",
-                                "criteria_provided,_conflicting_interpretations")
+                                "criteria_provided,_conflicting_interpretations",
+                                "no_assertion_provided",
+                                "no_assertion_criteria_provided")
                 );
             }
             case TWOSTAR -> {
                 return new ArrayList<>(
-                        List.of("criteria_provided,_multiple_submitters,_no_conflicts")
+                        List.of("criteria_provided,_multiple_submitters,_no_conflicts",
+                                "criteria_provided,_single_submitter",
+                                "criteria_provided,_conflicting_interpretations",
+                                "no_assertion_provided",
+                                "no_assertion_criteria_provided")
                 );
             }
             case THREESTAR -> {
                 return new ArrayList<>(
-                        List.of("reviewed_by_expert_panel")
+                        List.of("reviewed_by_expert_panel",
+                                "criteria_provided,_multiple_submitters,_no_conflicts",
+                                "criteria_provided,_single_submitter",
+                                "criteria_provided,_conflicting_interpretations",
+                                "no_assertion_provided",
+                                "no_assertion_criteria_provided")
                 );
             }
         }

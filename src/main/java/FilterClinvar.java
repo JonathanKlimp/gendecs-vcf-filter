@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FilterClinvar {
 
@@ -6,16 +7,14 @@ public class FilterClinvar {
         String filenameClinvar = "data/clinvar_20220205.vcf";
         String filenameTestData = "data/test.vcf";
 
-        VcfReader vcfReader = new VcfReader(filenameTestData, StarRating.ZEROSTAR);
+        VcfParser vcfParser = new VcfParser(filenameTestData, StarRating.ONESTAR);
 
-//        if (vcfReader.removeStatus(filenameClinvar)) {
-//            System.out.println("Successfully removed the 0 star rating lines");
+//        if (vcfParser.removeStatus(filenameClinvar)) {
+//            System.out.println("Successfully removed the 0 and 1 star rating lines");
 //        }
-        ArrayList<String> matches = vcfReader.matchWithClinvar();
-//        System.out.println(matches);
-        for(String i : matches) {
-            System.out.println(i);
-        }
+        Variants variants = vcfParser.matchWithClinvar();
 
+        HashMap<String, String> genesHpo = GeneToHpo.geneToHpo(variants.getGenes());
+        System.out.println(genesHpo);
     }
 }
