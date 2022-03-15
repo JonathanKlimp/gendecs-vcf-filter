@@ -2,16 +2,18 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class VcfReader {
+public class VcfParser {
     File vcfFile;
     StarRating starRating;
+    ArrayList<String> matchedVariants = new ArrayList<>();
+    ArrayList<String> matchedGenes = new ArrayList<>();
 
-    public VcfReader(String filename, StarRating starRating) {
+    public VcfParser(String filename, StarRating starRating) {
         vcfFile = new File(filename);
         this.starRating = starRating;
     }
 
-    public ArrayList<String> getRating(StarRating starRating) {
+    private ArrayList<String> getRating(StarRating starRating) {
         switch (starRating) {
             case ZEROSTAR -> {
                 return new ArrayList<>(
@@ -40,7 +42,6 @@ public class VcfReader {
     }
 
     public boolean removeStatus(String inputFile) {
-
         File tempFile = new File("data/tempFile.vcf");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
@@ -48,7 +49,7 @@ public class VcfReader {
             Scanner reader = new Scanner(fileObject);
             while(reader.hasNextLine()) {
                 String data = reader.nextLine();
-                if(stringContainsItemFromList(data, getRating(this.starRating))) {
+                if(stringContainsItemFromList(data, Objects.requireNonNull(getRating(this.starRating)))) {
                     continue;
                 }
                 writer.write(data + System.getProperty("line.separator"));
@@ -61,11 +62,12 @@ public class VcfReader {
         }
         return false;
     }
-    public static boolean stringContainsItemFromList(String inputString, ArrayList<String> items) {
+
+    private static boolean stringContainsItemFromList(String inputString, ArrayList<String> items) {
         return items.stream().anyMatch(inputString::contains);
     }
 
-    public ArrayList<String> matchWithClinvar() {
+    public void matchWithClinvar() {
         Map<String, Pattern> stringsToFind = new HashMap<>();
         try {
             Scanner reader = new Scanner(vcfFile);
@@ -86,11 +88,10 @@ public class VcfReader {
 
             }
             ArrayList<String> foundMatches = getMatchesClinvar(stringsToFind);
-            return filterMatches(foundMatches);
+            filterMatches(foundMatches);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
     private static ArrayList<String> getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
@@ -108,29 +109,37 @@ public class VcfReader {
         return foundMatches;
     }
 
-    private static ArrayList<String> filterMatches(ArrayList<String> matchedLines) {
-        ArrayList<String> matchedVariants = new ArrayList<>();
+    private void filterMatches(ArrayList<String> matchedLines) {
 
         for(String variant: matchedLines) {
             String[] splittedLine = variant.split("\t");
             String[] infoString = splittedLine[7].split(";");
 
             for(String i: infoString) {
-                addSigVariants(matchedVariants, variant, i);
+                this.addSigVariants(variant, i);
             }
         }
-        return matchedVariants;
     }
 
-    private static void addSigVariants(ArrayList<String> matchedVariants, String variant, String i) {
+    private void addSigVariants(String variant, String i) {
         ArrayList<String> clinSig = new ArrayList<>(
                 List.of("likely_pathogenic",
                         "pathogenic", "pathogenic/likely_pathogenic")
         );
         if(i.contains("CLNSIG")) {
             if (clinSig.contains(i.split("=")[1].toLowerCase())) {
-                matchedVariants.add(variant);
+                this.matchedVariants.add(variant);
             }
+        } else if (i.contains("GENEINFO")) {
+            this.matchedGenes.add(i.split("=")[1]);
         }
+    }
+
+    public ArrayList<String> getMatchedVariants() {
+        return matchedVariants;
+    }
+
+    public ArrayList<String> getMatchedGenes() {
+        return matchedGenes;
     }
 }
