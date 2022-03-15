@@ -9,12 +9,11 @@ public class FilterClinvar {
 
         VcfParser vcfParser = new VcfParser(filenameTestData, StarRating.ONESTAR);
 
-//        if (vcfParser.removeStatus(filenameClinvar)) {
-//            System.out.println("Successfully removed the 0 and 1 star rating lines");
-//        }
+        if (vcfParser.removeStatus(filenameClinvar)) {
+            System.out.println("Successfully removed the 0 and 1 star rating lines");
+        }
         Variants variants = vcfParser.matchWithClinvar();
 
-        HashMap<String, String> genesHpo = GeneToHpo.geneToHpo(variants.getGenes());
-        System.out.println(genesHpo);
+        System.out.println(variants.getGeneHpo());
     }
 }

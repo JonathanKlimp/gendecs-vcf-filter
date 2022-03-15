@@ -19,6 +19,8 @@ public class GeneToHpo {
         for(String gene : genesRaw) {
             String[] geneSplit = gene.split(":");
             if(geneSplit.length > 2) {
+                // [TTC21B, 79809|TTC21B-AS1, 100506134]
+//                [HBB, 3043|LOC106099062, 106099062|LOC107133510, 107133510]
 //                geneSymbols.add(geneSplit[0]);
             } else {
                 geneSymbols.add(geneSplit[0]);
@@ -42,7 +44,6 @@ public class GeneToHpo {
                     }
                 }
             }
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

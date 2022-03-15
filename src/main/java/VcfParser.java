@@ -126,20 +126,8 @@ public class VcfParser {
                 if (currentLine.matches(String.valueOf(stringToFind))) {
                     if(isPathogenic(currentLine)) {
                         variants.addVariant(currentLine);
-                        addGene(currentLine);
                     }
                 }
-            }
-        }
-    }
-
-    private static void addGene(String variant) {
-        String[] splittedLine = variant.split("\t");
-        String[] infoString = splittedLine[7].split(";");
-
-        for(String i: infoString) {
-            if(i.contains("GENEINFO")) {
-                variants.addGene(i.split("=")[1]);
             }
         }
     }
