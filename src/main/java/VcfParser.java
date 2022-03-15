@@ -5,8 +5,8 @@ import java.util.regex.Pattern;
 public class VcfParser {
     File vcfFile;
     StarRating starRating;
-    ArrayList<String> matchedVariants = new ArrayList<>();
-    ArrayList<String> matchedGenes = new ArrayList<>();
+
+    Variants variants = new Variants();
 
     public VcfParser(String filename, StarRating starRating) {
         vcfFile = new File(filename);
@@ -67,7 +67,7 @@ public class VcfParser {
         return items.stream().anyMatch(inputString::contains);
     }
 
-    public void matchWithClinvar() {
+    public Variants matchWithClinvar() {
         Map<String, Pattern> stringsToFind = new HashMap<>();
         try {
             Scanner reader = new Scanner(vcfFile);
@@ -85,13 +85,14 @@ public class VcfParser {
                         String.format("%s\\t%s\\t[0-9]+\\t%s\\t%s.+",
                                 chromosome, position, ref, alt));
                 stringsToFind.put(data, pattern);
-
             }
             ArrayList<String> foundMatches = getMatchesClinvar(stringsToFind);
             filterMatches(foundMatches);
+            return variants;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     private static ArrayList<String> getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
@@ -128,18 +129,10 @@ public class VcfParser {
         );
         if(i.contains("CLNSIG")) {
             if (clinSig.contains(i.split("=")[1].toLowerCase())) {
-                this.matchedVariants.add(variant);
+                this.variants.addVariant(variant);
             }
         } else if (i.contains("GENEINFO")) {
-            this.matchedGenes.add(i.split("=")[1]);
+            this.variants.addGene(i.split("=")[1]);
         }
-    }
-
-    public ArrayList<String> getMatchedVariants() {
-        return matchedVariants;
-    }
-
-    public ArrayList<String> getMatchedGenes() {
-        return matchedGenes;
     }
 }
