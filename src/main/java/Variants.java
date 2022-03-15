@@ -14,6 +14,10 @@ public class Variants {
         this.variants.add(variants);
     }
 
+    /**
+     * Method that filters the genes from the variants if the arraylist genes is empty.
+     * @return ArrayList with gene symbols.
+     */
     public ArrayList<String> getGenes() {
         if(this.genes.size() == 0) {
             for(String variant: variants) {
@@ -33,6 +37,11 @@ public class Variants {
         this.genes.add(genes);
     }
 
+    /**
+     * Method that will fill a hashmap with gene symbols and HPO terms if it is empty.
+     * Using GenToHpo.geneToHpo. Else returns the hashmap
+     * @return hashmap with gene symbol and HPO term
+     */
     public HashMap<String, String> getGeneHpo() {
         if(this.genesHpo.size() == 0) {
             this.genesHpo = GeneToHpo.geneToHpo(this.getGenes());

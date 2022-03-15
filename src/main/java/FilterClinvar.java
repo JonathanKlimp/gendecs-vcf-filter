@@ -1,16 +1,14 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-
 public class FilterClinvar {
 
     public static void main(String[] args) {
         String filenameClinvar = "data/clinvar_20220205.vcf";
         String filenameTestData = "data/test.vcf";
+        StarRating starRating = StarRating.ONESTAR;
 
-        VcfParser vcfParser = new VcfParser(filenameTestData, StarRating.ONESTAR);
+        VcfParser vcfParser = new VcfParser(filenameTestData, starRating);
 
         if (vcfParser.removeStatus(filenameClinvar)) {
-            System.out.println("Successfully removed the 0 and 1 star rating lines");
+            System.out.println("Successfully removed " + starRating + " and below from " + filenameClinvar);
         }
         Variants variants = vcfParser.matchWithClinvar();
 
