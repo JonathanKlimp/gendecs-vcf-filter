@@ -6,7 +6,7 @@ public class VcfParser {
     File vcfFile;
     StarRating starRating;
 
-    Variants variants = new Variants();
+    static Variants variants = new Variants();
 
     public VcfParser(String filename, StarRating starRating) {
         vcfFile = new File(filename);
@@ -52,6 +52,11 @@ public class VcfParser {
         return null;
     }
 
+    /**
+     * Method removeStatus removes given starRating from input clinvar file.
+     * @param inputFile clinvar file as vcf
+     * @return boolean true if successful, false if failed
+     */
     public boolean removeStatus(String inputFile) {
         File tempFile = new File("data/tempFile.vcf");
         try {
@@ -78,6 +83,13 @@ public class VcfParser {
         return items.stream().anyMatch(inputString::contains);
     }
 
+    /**
+     * Method matchWithClinvar reads given vcf file with variants and builds regex for each line.
+     * Which is then used to match this with variants in the clinvar vcf file. The found matches
+     * are filtered on the variant being pathogenic or not. The remaining variants are added
+     * to the Variants class.
+     * @return Variants class with the matched variants
+     */
     public Variants matchWithClinvar() {
         Map<String, Pattern> stringsToFind = new HashMap<>();
         try {
@@ -97,8 +109,7 @@ public class VcfParser {
                                 chromosome, position, ref, alt));
                 stringsToFind.put(data, pattern);
             }
-            ArrayList<String> foundMatches = getMatchesClinvar(stringsToFind);
-            filterMatches(foundMatches);
+            getMatchesClinvar(stringsToFind);
             return variants;
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,44 +117,48 @@ public class VcfParser {
         return null;
     }
 
-    private static ArrayList<String> getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
+    private void getMatchesClinvar(Map<String, Pattern> stringsToFind) throws IOException {
         File file = new File("data/clinvar_20220205.vcf");
         Scanner reader = new Scanner(file);
-        ArrayList<String> foundMatches = new ArrayList<>();
         while(reader.hasNextLine()) {
             String currentLine = reader.nextLine();
             for(Pattern stringToFind: stringsToFind.values()) {
                 if (currentLine.matches(String.valueOf(stringToFind))) {
-                    foundMatches.add(currentLine);
+                    if(isPathogenic(currentLine)) {
+                        variants.addVariant(currentLine);
+                        addGene(currentLine);
+                    }
                 }
             }
         }
-        return foundMatches;
     }
 
-    private void filterMatches(ArrayList<String> matchedLines) {
+    private static void addGene(String variant) {
+        String[] splittedLine = variant.split("\t");
+        String[] infoString = splittedLine[7].split(";");
 
-        for(String variant: matchedLines) {
-            String[] splittedLine = variant.split("\t");
-            String[] infoString = splittedLine[7].split(";");
-
-            for(String i: infoString) {
-                this.addSigVariants(variant, i);
+        for(String i: infoString) {
+            if(i.contains("GENEINFO")) {
+                variants.addGene(i.split("=")[1]);
             }
         }
     }
 
-    private void addSigVariants(String variant, String i) {
+    private static boolean isPathogenic(String variant) {
         ArrayList<String> clinSig = new ArrayList<>(
                 List.of("likely_pathogenic",
                         "pathogenic", "pathogenic/likely_pathogenic")
         );
-        if(i.contains("CLNSIG")) {
-            if (clinSig.contains(i.split("=")[1].toLowerCase())) {
-                this.variants.addVariant(variant);
+        String[] splittedLine = variant.split("\t");
+        String[] infoString = splittedLine[7].split(";");
+
+        for(String i: infoString) {
+            if(i.contains("CLNSIG")) {
+                if(clinSig.contains(i.split("=")[1].toLowerCase())) {
+                    return true;
+                }
             }
-        } else if (i.contains("GENEINFO")) {
-            this.variants.addGene(i.split("=")[1]);
         }
+        return false;
     }
 }
