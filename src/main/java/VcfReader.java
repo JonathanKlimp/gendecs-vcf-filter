@@ -4,11 +4,43 @@ import java.util.regex.Pattern;
 
 public class VcfReader {
     File vcfFile;
-    public VcfReader(String filename) {
+    StarRating starRating;
+
+    public VcfReader(String filename, StarRating starRating) {
         vcfFile = new File(filename);
+        this.starRating = starRating;
     }
 
-    public boolean removeStatus(String inputFile, ArrayList<String> reviewStatus) {
+    public ArrayList<String> getRating(StarRating starRating) {
+        switch (starRating) {
+            case ZEROSTAR -> {
+                return new ArrayList<>(
+                        List.of("no_assertion_provided",
+                                "no_assertion_criteria_provided")
+                );
+            }
+            case ONESTAR -> {
+                return new ArrayList<>(
+                        List.of("criteria_provided,_single_submitter",
+                                "criteria_provided,_conflicting_interpretations")
+                );
+            }
+            case TWOSTAR -> {
+                return new ArrayList<>(
+                        List.of("criteria_provided,_multiple_submitters,_no_conflicts")
+                );
+            }
+            case THREESTAR -> {
+                return new ArrayList<>(
+                        List.of("reviewed_by_expert_panel")
+                );
+            }
+        }
+        return null;
+    }
+
+    public boolean removeStatus(String inputFile) {
+
         File tempFile = new File("data/tempFile.vcf");
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
@@ -16,7 +48,7 @@ public class VcfReader {
             Scanner reader = new Scanner(fileObject);
             while(reader.hasNextLine()) {
                 String data = reader.nextLine();
-                if(stringContainsItemFromList(data, reviewStatus)) {
+                if(stringContainsItemFromList(data, getRating(this.starRating))) {
                     continue;
                 }
                 writer.write(data + System.getProperty("line.separator"));
@@ -78,22 +110,23 @@ public class VcfReader {
 
     private static ArrayList<String> filterMatches(ArrayList<String> matchedLines) {
         ArrayList<String> matchedVariants = new ArrayList<>();
-        ArrayList<String> clinSig = new ArrayList<>(
-                List.of("likely_pathogenic",
-                        "pathogenic", "pathogenic/likely_pathogenic")
-        );
+
         for(String variant: matchedLines) {
             String[] splittedLine = variant.split("\t");
             String[] infoString = splittedLine[7].split(";");
 
             for(String i: infoString) {
-                addSigVariants(matchedVariants, clinSig, variant, i);
+                addSigVariants(matchedVariants, variant, i);
             }
         }
         return matchedVariants;
     }
 
-    private static void addSigVariants(ArrayList<String> matchedVariants, ArrayList<String> clinSig, String variant, String i) {
+    private static void addSigVariants(ArrayList<String> matchedVariants, String variant, String i) {
+        ArrayList<String> clinSig = new ArrayList<>(
+                List.of("likely_pathogenic",
+                        "pathogenic", "pathogenic/likely_pathogenic")
+        );
         if(i.contains("CLNSIG")) {
             if (clinSig.contains(i.split("=")[1].toLowerCase())) {
                 matchedVariants.add(variant);
